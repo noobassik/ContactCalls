@@ -1,0 +1,634 @@
+﻿@page "/conferences"
+@model ContactCalls.Pages.ConferencesPageModel
+@{
+    ViewData["Title"] = "Конференции";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Управление конференциями</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createConferenceModal">
+                    <i class="fas fa-plus"></i> Создать конференцию
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label">Статус</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">Все статусы</option>
+                                <option value="0">Запланирована</option>
+                                <option value="1">В процессе</option>
+                                <option value="2">Завершена</option>
+                                <option value="3">Отменена</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">Дата от</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDate" class="form-label">Дата до</label>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-primary me-2" id="filterButton">
+                                <i class="fas fa-filter"></i> Фильтр
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="clearFilterButton">
+                                Очистить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Всего конференций</h5>
+                            <h2 id="totalConferences">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Запланированы</h5>
+                            <h2 id="scheduledConferences">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">В процессе</h5>
+                            <h2 id="inProgressConferences">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Завершены</h5>
+                            <h2 id="completedConferences">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conferences Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название</th>
+                                    <th>Время начала</th>
+                                    <th>Время окончания</th>
+                                    <th>Длительность</th>
+                                    <th>Статус</th>
+                                    <th>Участники</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="conferencesTableBody">
+                                <!-- Conferences will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Conference Modal -->
+<div class="modal fade" id="createConferenceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Создать конференцию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createConferenceForm">
+                    <div class="mb-3">
+                        <label for="conferenceName" class="form-label">Название конференции *</label>
+                        <input type="text" class="form-control" id="conferenceName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="conferenceStartTime" class="form-label">Время начала *</label>
+                        <input type="datetime-local" class="form-control" id="conferenceStartTime" name="startTime" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveConferenceButton">Создать</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Participants Modal -->
+<div class="modal fade" id="manageParticipantsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Участники конференции: <span id="participantsConferenceName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="participantsConferenceId">
+
+                <!-- Add Participant Form -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Добавить участника</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="addParticipantForm">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="participantPhone" class="form-label">Телефон участника *</label>
+                                        <select class="form-select" id="participantPhone" name="phoneId" required>
+                                            <option value="">Выберите телефон</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="button" class="btn btn-success" id="addParticipantButton">
+                                        <i class="fas fa-plus"></i> Добавить
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Participants List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Текущие участники</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="participantsList">
+                            <!-- Participants will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let conferencesData = [];
+        let phonesData = [];
+        let currentConferenceParticipants = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConferences();
+            loadPhones();
+        });
+
+        document.getElementById('filterButton').addEventListener('click', function() {
+            applyFilters();
+        });
+
+        document.getElementById('clearFilterButton').addEventListener('click', function() {
+            clearFilters();
+        });
+
+        document.getElementById('saveConferenceButton').addEventListener('click', function() {
+            createConference();
+        });
+
+        document.getElementById('addParticipantButton').addEventListener('click', function() {
+            addParticipant();
+        });
+
+        async function loadConferences() {
+            try {
+                const response = await fetch('/api/conferences');
+                if (response.ok) {
+                    conferencesData = await response.json();
+                    renderConferencesTable(conferencesData);
+                    updateStatistics();
+                } else {
+                    showError('Ошибка загрузки конференций');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function loadPhones() {
+            try {
+                const response = await fetch('/api/phones');
+                if (response.ok) {
+                    phonesData = await response.json();
+                    populatePhoneSelect();
+                } else {
+                    showError('Ошибка загрузки телефонов');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        function populatePhoneSelect() {
+            const select = document.getElementById('participantPhone');
+            select.innerHTML = '<option value="">Выберите телефон</option>';
+
+            phonesData.forEach(phone => {
+                const option = `<option value="${phone.id}">${phone.number} (${phone.contactName})</option>`;
+                select.innerHTML += option;
+            });
+        }
+
+        async function createConference() {
+            const form = document.getElementById('createConferenceForm');
+            const formData = new FormData(form);
+
+            const conferenceData = {
+                name: formData.get('name'),
+                startTime: formData.get('startTime')
+            };
+
+            try {
+                const response = await fetch('/api/conferences', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(conferenceData)
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createConferenceModal'));
+                    modal.hide();
+                    form.reset();
+                    loadConferences();
+                    showSuccess('Конференция успешно создана');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка создания конференции: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function manageParticipants(conferenceId) {
+            const conference = conferencesData.find(c => c.id === conferenceId);
+            if (!conference) return;
+
+            document.getElementById('participantsConferenceId').value = conferenceId;
+            document.getElementById('participantsConferenceName').textContent = conference.name;
+
+            document.getElementById('addParticipantForm').reset();
+
+            await loadConferenceDetails(conferenceId);
+
+            const modal = new bootstrap.Modal(document.getElementById('manageParticipantsModal'));
+            modal.show();
+        }
+
+        async function loadConferenceDetails(conferenceId) {
+            try {
+                const response = await fetch(`/api/conferences/${conferenceId}`);
+                if (response.ok) {
+                    const conference = await response.json();
+                    currentConferenceParticipants = conference.participants || [];
+                    renderParticipantsList();
+                } else {
+                    showError('Ошибка загрузки участников');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function addParticipant() {
+            const conferenceId = document.getElementById('participantsConferenceId').value;
+            const phoneId = document.getElementById('participantPhone').value;
+
+            if (!phoneId) {
+                showError('Выберите телефон участника');
+                return;
+            }
+
+            const participantData = {
+                phoneId: parseInt(phoneId)
+            };
+
+            try {
+                const response = await fetch(`/api/conferences/${conferenceId}/participants`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(participantData)
+                });
+
+                if (response.ok) {
+                    document.getElementById('addParticipantForm').reset();
+                    await loadConferenceDetails(conferenceId);
+                    await loadConferences();                    showSuccess('Участник успешно добавлен');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка добавления участника: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function removeParticipant(conferenceId, phoneId) {
+            if (!confirm('Удалить участника из конференции?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/conferences/${conferenceId}/participants/${phoneId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    await loadConferenceDetails(conferenceId);
+                    await loadConferences();                    showSuccess('Участник удален из конференции');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка удаления участника: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function startConference(conferenceId) {
+            if (!confirm('Запустить конференцию?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/conferences/${conferenceId}/start`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    loadConferences();
+                    showSuccess('Конференция запущена');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка запуска конференции: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function endConference(conferenceId) {
+            if (!confirm('Завершить конференцию?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/conferences/${conferenceId}/end`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    loadConferences();
+                    showSuccess('Конференция завершена');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка завершения конференции: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function deleteConference(conferenceId) {
+            if (!confirm('Вы уверены, что хотите удалить эту конференцию?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/conferences/${conferenceId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadConferences();
+                    showSuccess('Конференция успешно удалена');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка удаления конференции: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        function applyFilters() {
+            let filteredData = [...conferencesData];
+
+            const statusFilter = document.getElementById('statusFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (statusFilter !== '') {
+                filteredData = filteredData.filter(c => c.status === parseInt(statusFilter));
+            }
+
+            if (startDate) {
+                filteredData = filteredData.filter(c => new Date(c.startTime) >= new Date(startDate));
+            }
+
+            if (endDate) {
+                filteredData = filteredData.filter(c => new Date(c.startTime) <= new Date(endDate + 'T23:59:59'));
+            }
+
+            renderConferencesTable(filteredData);
+            updateStatistics(filteredData);
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            renderConferencesTable(conferencesData);
+            updateStatistics();
+        }
+
+        function renderConferencesTable(conferences) {
+            const tbody = document.getElementById('conferencesTableBody');
+            tbody.innerHTML = '';
+
+            if (conferences.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Конференции не найдены</td></tr>';
+                return;
+            }
+
+            conferences.forEach(conference => {
+                const row = document.createElement('tr');
+
+                const startTime = new Date(conference.startTime).toLocaleString('ru-RU');
+                const endTime = conference.endTime ? new Date(conference.endTime).toLocaleString('ru-RU') : '-';
+                const duration = conference.durationSeconds ? formatDuration(conference.durationSeconds) : '-';
+                const statusText = getStatusText(conference.status);
+                const participantCount = conference.participantCount || 0;
+
+                let actionButtons = '';
+
+                if (conference.status === 0) {                    actionButtons = `
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="startConference(${conference.id})" title="Запустить">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    `;
+                } else if (conference.status === 1) {                    actionButtons = `
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="endConference(${conference.id})" title="Завершить">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <td>${conference.id}</td>
+                    <td>${conference.name}</td>
+                    <td>${startTime}</td>
+                    <td>${endTime}</td>
+                    <td>${duration}</td>
+                    <td><span class="badge ${getStatusBadgeClass(conference.status)}">${statusText}</span></td>
+                    <td>
+                        <span class="badge bg-info">${participantCount}</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary ms-1" onclick="manageParticipants(${conference.id})" title="Управлять участниками">
+                            <i class="fas fa-users"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            ${actionButtons}
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteConference(${conference.id})" title="Удалить">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderParticipantsList() {
+            const container = document.getElementById('participantsList');
+            container.innerHTML = '';
+
+            if (currentConferenceParticipants.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted">Нет участников</div>';
+                return;
+            }
+
+            currentConferenceParticipants.forEach(participant => {
+                const participantCard = document.createElement('div');
+                participantCard.className = 'card mb-2';
+
+                const joinTime = new Date(participant.joinTime).toLocaleString('ru-RU');
+                const leaveTime = participant.leaveTime ? new Date(participant.leaveTime).toLocaleString('ru-RU') : 'В конференции';
+                const duration = participant.durationSeconds ? formatDuration(participant.durationSeconds) : '-';
+
+                participantCard.innerHTML = `
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <strong>${participant.phoneNumber}</strong><br>
+                                <small class="text-muted">${participant.contactName}</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small>Присоединился: ${joinTime}</small>
+                            </div>
+                            <div class="col-md-3">
+                                <small>Покинул: ${leaveTime}</small><br>
+                                <small>Длительность: ${duration}</small>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="removeParticipant(${participant.conferenceId}, ${participant.phoneId})"
+                                        title="Удалить участника">
+                                    <i class="fas fa-user-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(participantCard);
+            });
+        }
+
+        function updateStatistics(data = conferencesData) {
+            const total = data.length;
+            const scheduled = data.filter(c => c.status === 0).length;
+            const inProgress = data.filter(c => c.status === 1).length;
+            const completed = data.filter(c => c.status === 2).length;
+
+            document.getElementById('totalConferences').textContent = total;
+            document.getElementById('scheduledConferences').textContent = scheduled;
+            document.getElementById('inProgressConferences').textContent = inProgress;
+            document.getElementById('completedConferences').textContent = completed;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                0: 'Запланирована',
+                1: 'В процессе',
+                2: 'Завершена',
+                3: 'Отменена'
+            };
+            return statusMap[status] || 'Неизвестно';
+        }
+
+        function getStatusBadgeClass(status) {
+            const classMap = {
+                0: 'bg-warning',
+                1: 'bg-info',
+                2: 'bg-success',
+                3: 'bg-secondary'
+            };
+            return classMap[status] || 'bg-secondary';
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showSuccess(message) {
+            alert(message);
+        }
+
+        function showError(message) {
+            alert(message);
+        }
+    </script>
+}

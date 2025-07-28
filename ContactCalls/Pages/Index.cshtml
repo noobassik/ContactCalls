@@ -1,0 +1,93 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="jumbotron bg-primary text-white rounded p-5 mb-4">
+                <div class="container-fluid py-5">
+                    <h1 class="display-4">
+                        <i class="fas fa-phone-alt me-3"></i>
+                        Система учета контактов и звонков
+                    </h1>
+                    <p class="fs-5">
+                        Комплексное решение для управления контактами, телефонными номерами и учета звонков с возможностью генерации отчетов и биллинга.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Управление контактами</h5>
+                    <p class="card-text">Создавайте, редактируйте и организуйте контакты с детальными профилями и множественными телефонными номерами.</p>
+                    <a href="/contacts" class="btn btn-primary">
+                        <i class="fas fa-arrow-right me-1"></i>Перейти к контактам
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-phone fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Учет звонков</h5>
+                    <p class="card-text">Фиксируйте все входящие и исходящие звонки с подробной информацией о длительности и стоимости.</p>
+                    <a href="/calls" class="btn btn-success">
+                        <i class="fas fa-arrow-right me-1"></i>Управление звонками
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-video fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Конференции</h5>
+                    <p class="card-text">Организуйте и управляйте конференц-звонками с несколькими участниками, отслеживайте статистику участия.</p>
+                    <a href="/conferences" class="btn btn-info">
+                        <i class="fas fa-arrow-right me-1"></i>Управление конференциями
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Отчеты и аналитика</h5>
+                    <p class="card-text">Получайте детальную статистику звонков, отчеты по биллингу и аналитику с красивыми графиками.</p>
+                    <a href="/reports" class="btn btn-warning">
+                        <i class="fas fa-arrow-right me-1"></i>Просмотр отчетов
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.classList.add('shadow');
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.classList.remove('shadow');
+                });
+            });
+        });
+    </script>
+}

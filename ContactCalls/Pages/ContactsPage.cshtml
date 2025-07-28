@@ -1,0 +1,1009 @@
+﻿@page "/contacts"
+@model ContactCalls.Pages.ContactsPageModel
+@{
+    ViewData["Title"] = "Контакты";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Управление контактами</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createContactModal">
+                    <i class="fas fa-plus"></i> Добавить контакт
+                </button>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Поиск по имени, телефону, email...">
+                                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-outline-primary" id="clearSearch">
+                                Очистить поиск
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacts Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Фамилия</th>
+                                    <th>Имя</th>
+                                    <th>Отчество</th>
+                                    <th>Телефоны</th>
+                                    <th>Email</th>
+                                    <th>Компания</th>
+                                    <th>Создан</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contactsTableBody">
+                                <!-- Contacts will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Contact Modal -->
+<div class="modal fade" id="createContactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Создать контакт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createContactForm">
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">Имя *</label>
+                        <input type="text" class="form-control" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label">Фамилия *</label>
+                        <input type="text" class="form-control" id="lastName" name="lastName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="middleName" class="form-label">Отчество</label>
+                        <input type="text" class="form-control" id="middleName" name="middleName">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveContactButton">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Contact Modal -->
+<div class="modal fade" id="editContactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать контакт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editContactForm">
+                    <input type="hidden" id="editContactId" name="id">
+                    <div class="mb-3">
+                        <label for="editFirstName" class="form-label">Имя *</label>
+                        <input type="text" class="form-control" id="editFirstName" name="firstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editLastName" class="form-label">Фамилия *</label>
+                        <input type="text" class="form-control" id="editLastName" name="lastName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMiddleName" class="form-label">Отчество</label>
+                        <input type="text" class="form-control" id="editMiddleName" name="middleName">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="updateContactButton">Обновить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Contact Profile Modal -->
+<div class="modal fade" id="manageProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Профиль контакта: <span id="profileContactName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="profileContactId">
+
+                <form id="profileForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="profileEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="profileEmail" name="email"
+                                       placeholder="example@domain.com">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="profileDateOfBirth" class="form-label">Дата рождения</label>
+                                <input type="date" class="form-control" id="profileDateOfBirth" name="dateOfBirth">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="profileCompany" class="form-label">Компания</label>
+                                <input type="text" class="form-control" id="profileCompany" name="company"
+                                       placeholder="Название компании">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="profilePosition" class="form-label">Должность</label>
+                                <input type="text" class="form-control" id="profilePosition" name="position"
+                                       placeholder="Должность">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="profileAddress" class="form-label">Адрес</label>
+                        <textarea class="form-control" id="profileAddress" name="address" rows="2"
+                                  placeholder="Полный адрес"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="profileNotes" class="form-label">Заметки</label>
+                        <textarea class="form-control" id="profileNotes" name="notes" rows="3"
+                                  placeholder="Дополнительная информация"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="deleteProfileButton" style="display: none;">
+                    <i class="fas fa-trash"></i> Удалить профиль
+                </button>
+                <button type="button" class="btn btn-primary" id="saveProfileButton">
+                    <i class="fas fa-save"></i> Сохранить профиль
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Phones Modal -->
+<div class="modal fade" id="managePhonesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Управление телефонами: <span id="phoneContactName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="phoneContactId">
+
+                <!-- Add Phone Form -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Добавить новый телефон</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="addPhoneForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="newPhoneNumber" class="form-label">Номер телефона *</label>
+                                        <input type="text" class="form-control" id="newPhoneNumber" name="number"
+                                               placeholder="Введите цифры номера" required>
+                                        <div class="form-text">Введите только цифры. Формат будет применен автоматически: +X-XXX-XXX-XX-XX</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="newPhoneDescription" class="form-label">Описание</label>
+                                        <input type="text" class="form-control" id="newPhoneDescription" name="description"
+                                               placeholder="Например: Рабочий, Мобильный">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="newPhoneIsPrimary" name="isPrimary">
+                                        <label class="form-check-label" for="newPhoneIsPrimary">
+                                            Основной телефон
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-success" id="addPhoneButton">
+                                        <i class="fas fa-plus"></i> Добавить телефон
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Phones List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Существующие телефоны</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="phonesList">
+                            <!-- Phones will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Phone Modal -->
+<div class="modal fade" id="editPhoneModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать телефон</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPhoneForm">
+                    <input type="hidden" id="editPhoneId" name="id">
+                    <div class="mb-3">
+                        <label for="editPhoneNumber" class="form-label">Номер телефона *</label>
+                        <input type="text" class="form-control" id="editPhoneNumber" name="number"
+                               required>
+                        <div class="form-text">Введите только цифры. Формат будет применен автоматически: +X-XXX-XXX-XX-XX</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPhoneDescription" class="form-label">Описание</label>
+                        <input type="text" class="form-control" id="editPhoneDescription" name="description">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="editPhoneIsPrimary" name="isPrimary">
+                        <label class="form-check-label" for="editPhoneIsPrimary">
+                            Основной телефон
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="updatePhoneButton">Обновить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function formatPhoneNumber(input) {
+            const cursorPosition = input.selectionStart;
+            const oldValue = input.value;
+
+            let value = input.value.replace(/\D/g, '');
+
+            if (value.length > 11) {
+                value = value.substring(0, 11);
+            }
+
+            let formattedValue = '';
+
+            if (value.length > 0) {
+                formattedValue = '+' + value.charAt(0);
+
+                if (value.length > 1) {
+                    formattedValue += '-' + value.substring(1, 4);
+                }
+
+                if (value.length > 4) {
+                    formattedValue += '-' + value.substring(4, 7);
+                }
+
+                if (value.length > 7) {
+                    formattedValue += '-' + value.substring(7, 9);
+                }
+
+                if (value.length > 9) {
+                    formattedValue += '-' + value.substring(9, 11);
+                }
+            }
+
+            input.value = formattedValue;
+
+            if (oldValue.length < formattedValue.length) {
+                const newCursorPosition = cursorPosition + (formattedValue.length - oldValue.length);
+                input.setSelectionRange(newCursorPosition, newCursorPosition);
+            } else {
+                input.setSelectionRange(cursorPosition, cursorPosition);
+            }
+        }
+
+        function addPhoneFormatting(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('input', function(e) {
+                    setTimeout(() => {
+                        formatPhoneNumber(this);
+                    }, 0);
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' ||
+                        e.key === 'Delete' ||
+                        e.key === 'Tab' ||
+                        e.key === 'Escape' ||
+                        e.key === 'Enter' ||
+                        e.key === 'Home' ||
+                        e.key === 'End' ||
+                        e.key === 'ArrowLeft' ||
+                        e.key === 'ArrowRight' ||
+                        e.key === 'ArrowUp' ||
+                        e.key === 'ArrowDown' ||
+                        (e.key >= '0' && e.key <= '9') ||
+                        (e.ctrlKey && (e.key === 'a' || e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'z'))) {
+
+                        if (e.key >= '0' && e.key <= '9') {
+                            const currentDigits = this.value.replace(/\D/g, '');
+                            if (currentDigits.length >= 11) {
+                                e.preventDefault();
+                                return;
+                            }
+                        }
+
+                        return;
+                    }
+                    e.preventDefault();
+                });
+
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+
+                    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+
+                    const digits = pastedText.replace(/\D/g, '');
+
+                    const limitedDigits = digits.substring(0, 11);
+
+                    this.value = limitedDigits;
+                    formatPhoneNumber(this);
+                });
+
+                input.placeholder = 'Введите цифры номера';
+
+                if (input.value) {
+                    formatPhoneNumber(input);
+                }
+            }
+        }
+
+        function validatePhoneNumber(phoneNumber) {
+            const regex = /^\+[0-9]-[0-9]{3}-[0-9]{3}-[0-9]{2}-[0-9]{2}$/;
+            return regex.test(phoneNumber);
+        }
+
+        function getPhoneDigits(formattedPhone) {
+            return formattedPhone.replace(/\D/g, '');
+        }
+
+        let contactsData = [];
+        let currentContactPhones = [];
+        let currentContactProfile = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadContacts();
+
+            addPhoneFormatting('newPhoneNumber');
+            addPhoneFormatting('editPhoneNumber');
+        });
+
+        document.getElementById('searchButton').addEventListener('click', function() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (searchTerm) {
+                searchContacts(searchTerm);
+            } else {
+                loadContacts();
+            }
+        });
+
+        document.getElementById('clearSearch').addEventListener('click', function() {
+            document.getElementById('searchInput').value = '';
+            loadContacts();
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchButton').click();
+            }
+        });
+
+        document.getElementById('saveContactButton').addEventListener('click', function() {
+            const form = document.getElementById('createContactForm');
+            const formData = new FormData(form);
+
+            const contactData = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                middleName: formData.get('middleName') || null
+            };
+
+            createContact(contactData);
+        });
+
+        document.getElementById('updateContactButton').addEventListener('click', function() {
+            const form = document.getElementById('editContactForm');
+            const formData = new FormData(form);
+
+            const contactData = {
+                id: parseInt(formData.get('id')),
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                middleName: formData.get('middleName') || null
+            };
+
+            updateContact(contactData);
+        });
+
+        document.getElementById('addPhoneButton').addEventListener('click', function() {
+            addPhoneToContact();
+        });
+
+        document.getElementById('updatePhoneButton').addEventListener('click', function() {
+            updatePhone();
+        });
+
+        document.getElementById('saveProfileButton').addEventListener('click', function() {
+            saveContactProfile();
+        });
+
+        document.getElementById('deleteProfileButton').addEventListener('click', function() {
+            deleteContactProfile();
+        });
+
+        async function loadContacts() {
+            try {
+                const response = await fetch('/api/contacts');
+                if (response.ok) {
+                    contactsData = await response.json();
+                    renderContactsTable(contactsData);
+                } else {
+                    showError('Ошибка загрузки контактов');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function searchContacts(searchTerm) {
+            try {
+                const response = await fetch(`/api/contacts?search=${encodeURIComponent(searchTerm)}`);
+                if (response.ok) {
+                    contactsData = await response.json();
+                    renderContactsTable(contactsData);
+                } else {
+                    showError('Ошибка поиска контактов');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function createContact(contactData) {
+            try {
+                const response = await fetch('/api/contacts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(contactData)
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createContactModal'));
+                    modal.hide();
+                    document.getElementById('createContactForm').reset();
+                    loadContacts();
+                    showSuccess('Контакт успешно создан');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка создания контакта: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function updateContact(contactData) {
+            try {
+                const response = await fetch(`/api/contacts/${contactData.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(contactData)
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editContactModal'));
+                    modal.hide();
+                    loadContacts();
+                    showSuccess('Контакт успешно обновлен');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка обновления контакта: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function deleteContact(contactId) {
+            if (!confirm('Вы уверены, что хотите удалить этот контакт?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/contacts/${contactId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadContacts();
+                    showSuccess('Контакт успешно удален');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка удаления контакта: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        function editContact(contactId) {
+            const contact = contactsData.find(c => c.id === contactId);
+            if (contact) {
+                document.getElementById('editContactId').value = contact.id;
+                document.getElementById('editFirstName').value = contact.firstName;
+                document.getElementById('editLastName').value = contact.lastName;
+                document.getElementById('editMiddleName').value = contact.middleName || '';
+
+                const modal = new bootstrap.Modal(document.getElementById('editContactModal'));
+                modal.show();
+            }
+        }
+
+        async function manageProfile(contactId) {
+            const contact = contactsData.find(c => c.id === contactId);
+            if (!contact) return;
+
+            document.getElementById('profileContactId').value = contactId;
+            document.getElementById('profileContactName').textContent = `${contact.lastName} ${contact.firstName}`;
+
+            document.getElementById('profileForm').reset();
+            currentContactProfile = null;
+
+            await loadContactProfile(contactId);
+
+            const modal = new bootstrap.Modal(document.getElementById('manageProfileModal'));
+            modal.show();
+        }
+
+        async function loadContactProfile(contactId) {
+            try {
+                const response = await fetch(`/api/contacts/${contactId}/profile`);
+                if (response.ok) {
+                    currentContactProfile = await response.json();
+                    populateProfileForm(currentContactProfile);
+                    document.getElementById('deleteProfileButton').style.display = 'inline-block';
+                } else if (response.status === 404) {
+                    currentContactProfile = null;
+                    document.getElementById('deleteProfileButton').style.display = 'none';
+                } else {
+                    showError('Ошибка загрузки профиля');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        function populateProfileForm(profile) {
+            document.getElementById('profileEmail').value = profile.email || '';
+            document.getElementById('profileDateOfBirth').value = profile.dateOfBirth ?
+                new Date(profile.dateOfBirth).toISOString().split('T')[0] : '';
+            document.getElementById('profileCompany').value = profile.company || '';
+            document.getElementById('profilePosition').value = profile.position || '';
+            document.getElementById('profileAddress').value = profile.address || '';
+            document.getElementById('profileNotes').value = profile.notes || '';
+        }
+
+        async function saveContactProfile() {
+            const contactId = document.getElementById('profileContactId').value;
+            const form = document.getElementById('profileForm');
+            const formData = new FormData(form);
+
+            const profileData = {
+                email: formData.get('email') || null,
+                dateOfBirth: formData.get('dateOfBirth') || null,
+                company: formData.get('company') || null,
+                position: formData.get('position') || null,
+                address: formData.get('address') || null,
+                notes: formData.get('notes') || null
+            };
+
+            try {
+                const method = currentContactProfile ? 'PUT' : 'POST';
+                const response = await fetch(`/api/contacts/${contactId}/profile`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(profileData)
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('manageProfileModal'));
+                    modal.hide();
+                    await loadContacts();                    showSuccess(currentContactProfile ? 'Профиль успешно обновлен' : 'Профиль успешно создан');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка сохранения профиля: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function deleteContactProfile() {
+            if (!confirm('Вы уверены, что хотите удалить профиль контакта?')) {
+                return;
+            }
+
+            const contactId = document.getElementById('profileContactId').value;
+
+            try {
+                const response = await fetch(`/api/contacts/${contactId}/profile`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('manageProfileModal'));
+                    modal.hide();
+                    await loadContacts();                    showSuccess('Профиль успешно удален');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка удаления профиля: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function managePhones(contactId) {
+            const contact = contactsData.find(c => c.id === contactId);
+            if (!contact) return;
+
+            document.getElementById('phoneContactId').value = contactId;
+            document.getElementById('phoneContactName').textContent = `${contact.lastName} ${contact.firstName}`;
+
+            document.getElementById('addPhoneForm').reset();
+
+            await loadContactPhones(contactId);
+
+            const modal = new bootstrap.Modal(document.getElementById('managePhonesModal'));
+            modal.show();
+        }
+
+        async function loadContactPhones(contactId) {
+            try {
+                const response = await fetch(`/api/phones/by-contact/${contactId}`);
+                if (response.ok) {
+                    currentContactPhones = await response.json();
+                    renderPhonesList();
+                } else {
+                    showError('Ошибка загрузки телефонов');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function addPhoneToContact() {
+            const contactId = document.getElementById('phoneContactId').value;
+            const form = document.getElementById('addPhoneForm');
+            const formData = new FormData(form);
+
+            const phoneNumber = formData.get('number');
+
+            if (!validatePhoneNumber(phoneNumber)) {
+                showError('Пожалуйста, введите корректный номер телефона (11 цифр)');
+                return;
+            }
+
+            const phoneData = {
+                contactId: parseInt(contactId),
+                number: phoneNumber,
+                description: formData.get('description') || null,
+                isPrimary: document.getElementById('newPhoneIsPrimary').checked
+            };
+
+            try {
+                const response = await fetch('/api/phones', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(phoneData)
+                });
+
+                if (response.ok) {
+                    form.reset();
+                    await loadContactPhones(contactId);
+                    await loadContacts();                    showSuccess('Телефон успешно добавлен');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка добавления телефона: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function editPhone(phoneId) {
+            const phone = currentContactPhones.find(p => p.id === phoneId);
+            if (!phone) return;
+
+            document.getElementById('editPhoneId').value = phone.id;
+            const digits = phone.number.replace(/\D/g, '');
+            document.getElementById('editPhoneNumber').value = digits;
+            
+            formatPhoneNumber(document.getElementById('editPhoneNumber'));
+
+            document.getElementById('editPhoneDescription').value = phone.description || '';
+            document.getElementById('editPhoneIsPrimary').checked = phone.isPrimary;
+
+            const modal = new bootstrap.Modal(document.getElementById('editPhoneModal'));
+            modal.show();
+        }
+
+        async function updatePhone() {
+            const form = document.getElementById('editPhoneForm');
+            const formData = new FormData(form);
+            const phoneId = formData.get('id');
+            const phoneNumber = formData.get('number');
+
+            if (!validatePhoneNumber(phoneNumber)) {
+                showError('Пожалуйста, введите корректный номер телефона (11 цифр)');
+                return;
+            }
+
+            const phoneData = {
+                id: parseInt(phoneId),
+                number: phoneNumber,
+                description: formData.get('description') || null,
+                isPrimary: document.getElementById('editPhoneIsPrimary').checked
+            };
+
+            try {
+                const response = await fetch(`/api/phones/${phoneId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(phoneData)
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editPhoneModal'));
+                    modal.hide();
+
+                    const contactId = document.getElementById('phoneContactId').value;
+                    await loadContactPhones(contactId);
+                    await loadContacts(); 
+                    showSuccess('Телефон успешно обновлен');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка обновления телефона: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function deletePhone(phoneId) {
+            if (!confirm('Вы уверены, что хотите удалить этот телефон?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/phones/${phoneId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    const contactId = document.getElementById('phoneContactId').value;
+                    await loadContactPhones(contactId);
+                    await loadContacts(); 
+                    showSuccess('Телефон успешно удален');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка удаления телефона: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function setPrimaryPhone(phoneId) {
+            try {
+                const response = await fetch(`/api/phones/${phoneId}/set-primary`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const contactId = document.getElementById('phoneContactId').value;
+                    await loadContactPhones(contactId);
+                    await loadContacts(); 
+                    showSuccess('Основной телефон установлен');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка установки основного телефона: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        function renderContactsTable(contacts) {
+            const tbody = document.getElementById('contactsTableBody');
+            tbody.innerHTML = '';
+
+            if (contacts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center">Контакты не найдены</td></tr>';
+                return;
+            }
+
+            contacts.forEach(contact => {
+                const row = document.createElement('tr');
+
+                const phones = contact.phones.map(p =>
+                    `<span class="badge ${p.isPrimary ? 'bg-primary' : 'bg-secondary'} me-1" title="${p.description || ''}">${p.number}</span>`
+                ).join('');
+
+                const email = contact.profile ? contact.profile.email || '-' : '-';
+                const company = contact.profile ? contact.profile.company || '-' : '-';
+                const createdAt = new Date(contact.createdAt).toLocaleDateString('ru-RU');
+
+                const hasProfile = contact.profile !== null;
+                const profileIcon = hasProfile ? 'fas fa-user-check text-success' : 'fas fa-user-plus text-muted';
+                const profileTitle = hasProfile ? 'Редактировать профиль' : 'Создать профиль';
+
+                row.innerHTML = `
+                    <td>${contact.id}</td>
+                    <td>
+                        <a href="/contacts/${contact.id}" class="text-decoration-none">
+                            <strong>${contact.lastName}</strong>
+                        </a>
+                    </td>
+                    <td>
+                        <a href="/contacts/${contact.id}" class="text-decoration-none">
+                            ${contact.firstName}
+                        </a>
+                    </td>
+                    <td>${contact.middleName || '-'}</td>
+                    <td>${phones || '-'}</td>
+                    <td>${email}</td>
+                    <td>${company}</td>
+                    <td>${createdAt}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="/contacts/${contact.id}" class="btn btn-sm btn-outline-secondary" title="Подробнее">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="manageProfile(${contact.id})" title="${profileTitle}">
+                                <i class="${profileIcon}"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="managePhones(${contact.id})" title="Управлять телефонами">
+                                <i class="fas fa-phone"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="editContact(${contact.id})" title="Редактировать">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteContact(${contact.id})" title="Удалить">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderPhonesList() {
+            const container = document.getElementById('phonesList');
+            container.innerHTML = '';
+
+            if (currentContactPhones.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted">У контакта нет телефонов</div>';
+                return;
+            }
+
+            currentContactPhones.forEach(phone => {
+                const phoneCard = document.createElement('div');
+                phoneCard.className = 'card mb-2';
+
+                phoneCard.innerHTML = `
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <strong>${phone.number}</strong>
+                                ${phone.isPrimary ? '<span class="badge bg-primary ms-2">Основной</span>' : ''}
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">${phone.description || 'Без описания'}</small>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group" role="group">
+                                    ${!phone.isPrimary ? `<button type="button" class="btn btn-sm btn-outline-warning" onclick="setPrimaryPhone(${phone.id})" title="Сделать основным">
+                                        <i class="fas fa-star"></i>
+                                    </button>` : ''}
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editPhone(${phone.id})" title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePhone(${phone.id})" title="Удалить">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(phoneCard);
+            });
+        }
+
+        function showSuccess(message) {
+            alert(message);
+        }
+
+        function showError(message) {
+            alert(message);
+        }
+    </script>
+}

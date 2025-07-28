@@ -1,0 +1,670 @@
+﻿@page "/contacts/{id:int}"
+@model ContactCalls.Pages.ContactDetailPageModel
+@{
+    ViewData["Title"] = "Детали контакта";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/contacts">Контакты</a></li>
+                            <li class="breadcrumb-item active" aria-current="page" id="contactBreadcrumb">Загрузка...</li>
+                        </ol>
+                    </nav>
+                    <h1 id="contactTitle">Загрузка контакта...</h1>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" id="editContactButton">
+                        <i class="fas fa-edit"></i> Редактировать
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" id="deleteContactButton">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contact Info Cards Row -->
+            <div class="row mb-4">
+                <!-- Contact Basic Info -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>Основная информация
+                            </h5>
+                        </div>
+                        <div class="card-body" id="contactBasicInfo">
+                            <!-- Basic info will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Profile -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-id-card me-2"></i>Профиль контакта
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="manageProfileButton">
+                                <i class="fas fa-edit"></i> Управлять
+                            </button>
+                        </div>
+                        <div class="card-body" id="contactProfile">
+                            <!-- Profile will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phones and Statistics Row -->
+            <div class="row mb-4">
+                <!-- Phones -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-phone me-2"></i>Телефоны
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-outline-success" id="managePhonesButton">
+                                <i class="fas fa-plus"></i> Управлять
+                            </button>
+                        </div>
+                        <div class="card-body" id="contactPhones">
+                            <!-- Phones will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Statistics -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>Статистика звонков
+                            </h5>
+                        </div>
+                        <div class="card-body" id="contactStatistics">
+                            <!-- Statistics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call History -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>История звонков
+                            </h5>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="filterCallsButton">
+                                    <i class="fas fa-filter"></i> Фильтр
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" id="exportCallsButton">
+                                    <i class="fas fa-download"></i> Экспорт
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filter Panel -->
+                            <div class="row mb-3" id="callFilterPanel" style="display: none;">
+                                <div class="col-md-4">
+                                    <label for="callStartDate" class="form-label">Дата от</label>
+                                    <input type="date" class="form-control" id="callStartDate">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="callEndDate" class="form-label">Дата до</label>
+                                    <input type="date" class="form-control" id="callEndDate">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="button" class="btn btn-primary me-2" id="applyCallFilterButton">
+                                        Применить
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="clearCallFilterButton">
+                                        Очистить
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Calls Table -->
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Дата/Время</th>
+                                            <th>Направление</th>
+                                            <th>Номер</th>
+                                            <th>Контакт</th>
+                                            <th>Длительность</th>
+                                            <th>Статус</th>
+                                            <th>Стоимость</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="callHistoryTable">
+                                        <!-- Call history will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <nav aria-label="Call history pagination" id="callPagination" style="display: none;">
+                                <ul class="pagination justify-content-center">
+                                    <!-- Pagination will be generated here -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Contact Modal -->
+<div class="modal fade" id="editContactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать контакт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editContactForm">
+                    <div class="mb-3">
+                        <label for="editFirstName" class="form-label">Имя *</label>
+                        <input type="text" class="form-control" id="editFirstName" name="firstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editLastName" class="form-label">Фамилия *</label>
+                        <input type="text" class="form-control" id="editLastName" name="lastName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMiddleName" class="form-label">Отчество</label>
+                        <input type="text" class="form-control" id="editMiddleName" name="middleName">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveContactChangesButton">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let contactId = null;
+        let currentContact = null;
+        let callHistory = [];
+        let filteredCalls = [];
+        const callsPerPage = 10;
+        let currentPage = 1;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlPath = window.location.pathname;
+            contactId = parseInt(urlPath.split('/').pop());
+            
+            if (contactId) {
+                loadContactDetails();
+            } else {
+                showError('Invalid contact ID');
+            }
+        });
+
+        document.getElementById('editContactButton').addEventListener('click', openEditContactModal);
+        document.getElementById('deleteContactButton').addEventListener('click', deleteContact);
+        document.getElementById('saveContactChangesButton').addEventListener('click', saveContactChanges);
+        document.getElementById('manageProfileButton').addEventListener('click', () => window.location.href = `/contacts#profile-${contactId}`);
+        document.getElementById('managePhonesButton').addEventListener('click', () => window.location.href = `/contacts#phones-${contactId}`);
+        document.getElementById('filterCallsButton').addEventListener('click', toggleCallFilter);
+        document.getElementById('applyCallFilterButton').addEventListener('click', applyCallFilter);
+        document.getElementById('clearCallFilterButton').addEventListener('click', clearCallFilter);
+        document.getElementById('exportCallsButton').addEventListener('click', exportCallHistory);
+
+        async function loadContactDetails() {
+            try {
+                await Promise.all([
+                    loadContact(),
+                    loadCallHistory(),
+                    loadCallStatistics()
+                ]);
+            } catch (error) {
+                showError('Ошибка загрузки данных контакта: ' + error.message);
+            }
+        }
+
+        async function loadContact() {
+            const response = await fetch(`/api/contacts/${contactId}`);
+            if (response.ok) {
+                currentContact = await response.json();
+                renderContactInfo();
+            } else {
+                throw new Error('Contact not found');
+            }
+        }
+
+        async function loadCallHistory() {
+            const response = await fetch(`/api/calls?contactId=${contactId}`);
+            if (response.ok) {
+                callHistory = await response.json();
+                filteredCalls = [...callHistory];
+                renderCallHistory();
+            } else {
+                throw new Error('Failed to load call history');
+            }
+        }
+
+        async function loadCallStatistics() {
+            const response = await fetch(`/api/calls/statistics?contactId=${contactId}`);
+            if (response.ok) {
+                const statistics = await response.json();
+                renderStatistics(statistics);
+            } else {
+                throw new Error('Failed to load statistics');
+            }
+        }
+
+        function renderContactInfo() {
+            if (!currentContact) return;
+
+            const fullName = `${currentContact.lastName} ${currentContact.firstName}`;
+            document.getElementById('contactTitle').textContent = fullName;
+            document.getElementById('contactBreadcrumb').textContent = fullName;
+            document.title = `${fullName} - ContactCalls`;
+
+            const basicInfo = document.getElementById('contactBasicInfo');
+            const createdAt = new Date(currentContact.createdAt).toLocaleDateString('ru-RU');
+            const updatedAt = currentContact.updatedAt ? new Date(currentContact.updatedAt).toLocaleDateString('ru-RU') : 'Никогда';
+
+            basicInfo.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Имя:</strong> ${currentContact.firstName}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Фамилия:</strong> ${currentContact.lastName}
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>Отчество:</strong> ${currentContact.middleName || 'Не указано'}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>ID:</strong> ${currentContact.id}
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>Создан:</strong> ${createdAt}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Обновлен:</strong> ${updatedAt}
+                    </div>
+                </div>
+            `;
+
+            const profileDiv = document.getElementById('contactProfile');
+            if (currentContact.profile) {
+                const profile = currentContact.profile;
+                const dateOfBirth = profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('ru-RU') : 'Не указана';
+                
+                profileDiv.innerHTML = `
+                    <div class="mb-2">
+                        <strong>Email:</strong> ${profile.email || 'Не указан'}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Дата рождения:</strong> ${dateOfBirth}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Компания:</strong> ${profile.company || 'Не указана'}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Должность:</strong> ${profile.position || 'Не указана'}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Адрес:</strong> ${profile.address || 'Не указан'}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Заметки:</strong> ${profile.notes || 'Нет заметок'}
+                    </div>
+                `;
+            } else {
+                profileDiv.innerHTML = `
+                    <div class="text-muted text-center">
+                        <i class="fas fa-user-plus fa-2x mb-2"></i>
+                        <p>Профиль не создан</p>
+                        <small>Нажмите "Управлять" для создания профиля</small>
+                    </div>
+                `;
+            }
+
+            const phonesDiv = document.getElementById('contactPhones');
+            if (currentContact.phones && currentContact.phones.length > 0) {
+                let phonesHtml = '';
+                currentContact.phones.forEach(phone => {
+                    const primaryBadge = phone.isPrimary ? '<span class="badge bg-primary ms-2">Основной</span>' : '';
+                    phonesHtml += `
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                            <div>
+                                <strong>${phone.number}</strong>${primaryBadge}
+                                <br><small class="text-muted">${phone.description || 'Без описания'}</small>
+                            </div>
+                            <div>
+                                <small class="text-muted">Создан: ${new Date(phone.createdAt).toLocaleDateString('ru-RU')}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                phonesDiv.innerHTML = phonesHtml;
+            } else {
+                phonesDiv.innerHTML = `
+                    <div class="text-muted text-center">
+                        <i class="fas fa-phone-plus fa-2x mb-2"></i>
+                        <p>Нет телефонов</p>
+                        <small>Нажмите "Управлять" для добавления телефонов</small>
+                    </div>
+                `;
+            }
+        }
+
+        function renderStatistics(statistics) {
+            const statsDiv = document.getElementById('contactStatistics');
+            
+            statsDiv.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <h4 class="text-primary">${statistics.totalCalls}</h4>
+                        <small>Всего звонков</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-success">${statistics.outgoingCalls}</h4>
+                        <small>Исходящие</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-info">${statistics.incomingCalls}</h4>
+                        <small>Входящие</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-warning">${statistics.missedCalls}</h4>
+                        <small>Пропущенные</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <p><strong>Общая длительность:</strong><br>${statistics.totalDurationFormatted}</p>
+                    <p><strong>Общая стоимость:</strong><br>${statistics.totalCost.toFixed(2)} ₽</p>
+                </div>
+            `;
+        }
+
+        function renderCallHistory() {
+            const tbody = document.getElementById('callHistoryTable');
+            
+            if (filteredCalls.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Нет звонков</td></tr>';
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * callsPerPage;
+            const endIndex = startIndex + callsPerPage;
+            const paginatedCalls = filteredCalls.slice(startIndex, endIndex);
+
+            tbody.innerHTML = '';
+            paginatedCalls.forEach(call => {
+                const row = document.createElement('tr');
+                const startTime = new Date(call.startTime).toLocaleString('ru-RU');
+                
+                let direction, otherPhone, otherContact;
+                const isOutgoing = currentContact.phones.some(p => p.id === call.fromPhoneId);
+                
+                if (isOutgoing) {
+                    direction = '<span class="badge bg-success">Исходящий</span>';
+                    otherPhone = call.toPhoneNumber;
+                    otherContact = call.toContactName;
+                } else {
+                    direction = '<span class="badge bg-info">Входящий</span>';
+                    otherPhone = call.fromPhoneNumber;
+                    otherContact = call.fromContactName;
+                }
+
+                const status = getStatusBadge(call.status);
+                const cost = call.cost ? call.cost.toFixed(2) + ' ₽' : '-';
+
+                row.innerHTML = `
+                    <td>${startTime}</td>
+                    <td>${direction}</td>
+                    <td>${otherPhone}</td>
+                    <td>${otherContact}</td>
+                    <td>${call.durationFormatted}</td>
+                    <td>${status}</td>
+                    <td class="text-end">${cost}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredCalls.length / callsPerPage);
+            const paginationContainer = document.getElementById('callPagination');
+            
+            if (totalPages <= 1) {
+                paginationContainer.style.display = 'none';
+                return;
+            }
+
+            paginationContainer.style.display = 'block';
+            const pagination = paginationContainer.querySelector('.pagination');
+            pagination.innerHTML = '';
+
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Предыдущая</a>`;
+            pagination.appendChild(prevLi);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i})">${i}</a>`;
+                pagination.appendChild(li);
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Следующая</a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredCalls.length / callsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderCallHistory();
+            }
+        }
+
+        function getStatusBadge(status) {
+            const statusMap = {
+                0: '<span class="badge bg-warning">В процессе</span>',
+                1: '<span class="badge bg-success">Завершен</span>',
+                2: '<span class="badge bg-danger">Пропущен</span>',
+                3: '<span class="badge bg-secondary">Отклонен</span>',
+                4: '<span class="badge bg-danger">Неудачный</span>'
+            };
+            return statusMap[status] || '<span class="badge bg-secondary">Неизвестно</span>';
+        }
+
+        function openEditContactModal() {
+            if (!currentContact) return;
+
+            document.getElementById('editFirstName').value = currentContact.firstName;
+            document.getElementById('editLastName').value = currentContact.lastName;
+            document.getElementById('editMiddleName').value = currentContact.middleName || '';
+
+            const modal = new bootstrap.Modal(document.getElementById('editContactModal'));
+            modal.show();
+        }
+
+        async function saveContactChanges() {
+            const form = document.getElementById('editContactForm');
+            const formData = new FormData(form);
+
+            const contactData = {
+                id: contactId,
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                middleName: formData.get('middleName') || null
+            };
+
+            try {
+                const response = await fetch(`/api/contacts/${contactId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(contactData)
+                });
+
+                if (response.ok) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editContactModal'));
+                    modal.hide();
+                    await loadContact();                    showSuccess('Контакт успешно обновлен');
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка обновления контакта: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        async function deleteContact() {
+            if (!confirm('Вы уверены, что хотите удалить этот контакт? Это действие необратимо.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/contacts/${contactId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showSuccess('Контакт успешно удален');
+                    setTimeout(() => {
+                        window.location.href = '/contacts';
+                    }, 1000);
+                } else {
+                    const error = await response.json();
+                    showError('Ошибка удаления контакта: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            }
+        }
+
+        function toggleCallFilter() {
+            const panel = document.getElementById('callFilterPanel');
+            const button = document.getElementById('filterCallsButton');
+            const icon = button.querySelector('i');
+            
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                icon.className = 'fas fa-filter-circle-xmark';
+                setDefaultCallDates();
+            } else {
+                panel.style.display = 'none';
+                icon.className = 'fas fa-filter';
+            }
+        }
+
+        function setDefaultCallDates() {
+            const now = new Date();
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            document.getElementById('callStartDate').value = monthAgo.toISOString().split('T')[0];
+            document.getElementById('callEndDate').value = now.toISOString().split('T')[0];
+        }
+
+        function applyCallFilter() {
+            const startDate = document.getElementById('callStartDate').value;
+            const endDate = document.getElementById('callEndDate').value;
+
+            filteredCalls = callHistory.filter(call => {
+                const callDate = new Date(call.startTime).toISOString().split('T')[0];
+                return (!startDate || callDate >= startDate) && (!endDate || callDate <= endDate);
+            });
+
+            currentPage = 1;
+            renderCallHistory();
+        }
+
+        function clearCallFilter() {
+            document.getElementById('callStartDate').value = '';
+            document.getElementById('callEndDate').value = '';
+            filteredCalls = [...callHistory];
+            currentPage = 1;
+            renderCallHistory();
+        }
+
+        function exportCallHistory() {
+            if (filteredCalls.length === 0) {
+                showError('Нет данных для экспорта');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `История звонков - ${currentContact.lastName} ${currentContact.firstName}\n\n`;
+            csvContent += "Дата и время,Направление,Номер,Контакт,Длительность,Статус,Стоимость\n";
+            
+            filteredCalls.forEach(call => {
+                const startTime = new Date(call.startTime).toLocaleString('ru-RU');
+                const isOutgoing = currentContact.phones.some(p => p.id === call.fromPhoneId);
+                const direction = isOutgoing ? 'Исходящий' : 'Входящий';
+                const otherPhone = isOutgoing ? call.toPhoneNumber : call.fromPhoneNumber;
+                const otherContact = isOutgoing ? call.toContactName : call.fromContactName;
+                const status = getStatusText(call.status);
+                const cost = call.cost || 0;
+                
+                csvContent += `"${startTime}",${direction},${otherPhone},"${otherContact}",${call.durationFormatted},${status},${cost}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `call_history_${currentContact.lastName}_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                0: 'В процессе',
+                1: 'Завершен',
+                2: 'Пропущен',
+                3: 'Отклонен',
+                4: 'Неудачный'
+            };
+            return statusMap[status] || 'Неизвестно';
+        }
+
+        function showSuccess(message) {
+            alert(message);
+        }
+
+        function showError(message) {
+            alert(message);
+        }
+    </script>
+}
